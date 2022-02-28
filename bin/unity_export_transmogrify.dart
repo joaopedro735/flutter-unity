@@ -25,7 +25,7 @@ void main() {
       print('Directory not found: `$unityLibraryResPath`');
       return;
     }
-    
+
     File gradlePropertiesFile = File('$unityExportPath/gradle.properties');
     if (gradlePropertiesFile.existsSync()) {
       gradlePropertiesFile.copySync('$unityLibraryPath/gradle.properties');
