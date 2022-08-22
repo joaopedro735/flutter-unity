@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 class UnityViewController {
@@ -96,9 +97,9 @@ class _UnityViewState extends State<UnityView> {
   @override
   void dispose() {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      controller?._channel?.invokeMethod('dispose');
+      controller?._channel.invokeMethod('dispose');
     }
-    controller?._channel?.setMethodCallHandler(null);
+    controller?._channel.setMethodCallHandler(null);
     super.dispose();
   }
 
@@ -106,11 +107,29 @@ class _UnityViewState extends State<UnityView> {
   Widget build(BuildContext context) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return AndroidView(
+        return PlatformViewLink(
+          surfaceFactory: (context, controller) => AndroidViewSurface(
+            controller: controller as AndroidViewController,
+            hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+            gestureRecognizers: const {},
+          ),
+          onCreatePlatformView: (params) {
+            final controller = PlatformViewsService.initExpensiveAndroidView(
+              viewType: 'unity_view',
+              id: params.id,
+              layoutDirection: TextDirection.ltr,
+            );
+
+            controller
+              ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+              ..addOnPlatformViewCreatedListener(onPlatformViewCreated)
+              ..create();
+
+            return controller;
+          },
           viewType: 'unity_view',
-          onPlatformViewCreated: onPlatformViewCreated,
         );
-        break;
+
       case TargetPlatform.iOS:
         return UiKitView(
           viewType: 'unity_view',

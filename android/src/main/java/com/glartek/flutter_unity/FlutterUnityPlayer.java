@@ -11,6 +11,9 @@ import com.unity3d.player.UnityPlayer;
 public class FlutterUnityPlayer extends UnityPlayer {
     public FlutterUnityPlayer(Context context) {
         super(context);
+        bringToFront();
+        requestLayout();
+        invalidate();
     }
 
     @SuppressLint("ClickableViewAccessibility")

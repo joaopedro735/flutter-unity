@@ -2,6 +2,7 @@ package com.glartek.flutter_unity;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.view.Choreographer;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -106,7 +107,13 @@ public class FlutterUnityView implements PlatformView, MethodChannel.MethodCallH
         if (plugin.getPlayer().getParent() != null) {
             ((ViewGroup) plugin.getPlayer().getParent()).removeView(plugin.getPlayer());
         }
-        view.addView(plugin.getPlayer());
+        //view.addView(plugin.getPlayer());
+        ViewGroup.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+
+        view.addView(plugin.getPlayer(), layoutParams);
         plugin.getPlayer().windowFocusChanged(plugin.getPlayer().requestFocus());
         plugin.getPlayer().resume();
     }
@@ -121,5 +128,32 @@ public class FlutterUnityView implements PlatformView, MethodChannel.MethodCallH
                 }
             });
         }
+    }
+
+    public void invalidateFrameIfNeeded() {
+        if (plugin.getPlayer() == null) {
+            return;
+        }
+
+        postFrameCallback(new Runnable() {
+            @Override
+            public void run() {
+                postFrameCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        plugin.getPlayer().invalidate();
+                    }
+                });
+            }
+        });
+    }
+
+    private void postFrameCallback(final Runnable f) {
+        Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
+            @Override
+            public void doFrame(long frameTimeNanos) {
+                f.run();
+            }
+        });
     }
 }
