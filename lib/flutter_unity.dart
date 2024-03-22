@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 class UnityViewController {
@@ -106,17 +108,40 @@ class _UnityViewState extends State<UnityView> {
   Widget build(BuildContext context) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return AndroidView(
+        return PlatformViewLink(
           viewType: 'unity_view',
-          onPlatformViewCreated: onPlatformViewCreated,
+          surfaceFactory: (context, controller) {
+            return AndroidViewSurface(
+              controller: controller as AndroidViewController,
+              hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+              gestureRecognizers: const <Factory<
+                  OneSequenceGestureRecognizer>>{},
+            );
+          },
+          onCreatePlatformView: (PlatformViewCreationParams params) {
+            final controller = PlatformViewsService.initSurfaceAndroidView(
+              id: params.id,
+              viewType: 'unity_view',
+              layoutDirection: TextDirection.ltr,
+              // creationParams: creationParams,
+              creationParamsCodec: const StandardMessageCodec(),
+              onFocus: () => params.onFocusChanged(true),
+            );
+
+            controller
+              ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+              ..addOnPlatformViewCreatedListener(onPlatformViewCreated)
+              ..create();
+
+            return controller;
+          },
+          //onPlatformViewCreated: onPlatformViewCreated,
         );
-        break;
       case TargetPlatform.iOS:
         return UiKitView(
           viewType: 'unity_view',
           onPlatformViewCreated: onPlatformViewCreated,
         );
-        break;
       default:
         throw UnsupportedError('Unsupported platform: $defaultTargetPlatform');
     }

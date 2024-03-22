@@ -20,4 +20,17 @@ public class FlutterUnityPlayer extends UnityPlayer {
         motionEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
         return super.onTouchEvent(motionEvent);
     }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        try {
+            resume();
+            pause();
+            resume();
+        } catch (Exception e) {
+            Log.e(String.valueOf(this), e.toString());
+        }
+
+    }
 }
